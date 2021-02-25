@@ -8,7 +8,8 @@ generator client {
 }
 
 model Url {
-  hash         String @id
+  id           Int    @id @default(autoincrement())
+  hash         String @unique
   original_url String
-  hits         Int    @default(0)
+  hits         Int    @default(1)
 }
