@@ -9,13 +9,17 @@ const withoutProtocol = new RegExp(
 export function validateAndFormat(url: string): string {
   url = url.trim();
 
+  // http://google.com => http://google.com
+  // https://google.com => https://google.com
   if (url.match(withProtocol)) {
     return url;
   }
 
+  // google.com => http://google.com
   if (url.match(withoutProtocol)) {
     return `http://${url}`;
   }
 
+  // sdjfoisdjf => throw
   throw new Error('잘못된 url 형식입니다.');
 }

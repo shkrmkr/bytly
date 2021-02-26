@@ -1,6 +1,7 @@
 import { PrismaClient, Url } from '@prisma/client';
 import { Router } from 'express';
 import { nanoid } from 'nanoid/async';
+import { digitOnlyQueryStringToNumberArray } from './digitOnlyQueryStringToNumberArray';
 import { validateAndFormat } from './validateAndFormat';
 
 const router = Router();
@@ -36,14 +37,26 @@ router.post('/', async (req, res) => {
 
     res.status(201).send(shortUrl);
   } catch (error) {
-    res.status(500).send({ message: error.message });
+    if (error.message === '잘못된 url 형식입니다.') {
+      return res.status(400).send({ message: error.message });
+    }
+    res.status(500).send({ message: 'Something went wrong...' });
   }
 });
 
-router.get('/', async (_, res) => {
-  const urls = await prisma.url.findMany();
+router.get('/', async (req, res) => {
+  const { shortUrlIds } = req.query;
 
-  res.send(urls);
+  const ids = digitOnlyQueryStringToNumberArray(shortUrlIds as string);
+
+  try {
+    const urls = await prisma.url.findMany({
+      where: { id: { in: ids } },
+    });
+    res.send(urls);
+  } catch (error) {
+    res.status(500).send({ message: 'Somthing went wrong...' });
+  }
 });
 
 router.get('/:hash', async (req, res) => {
@@ -59,7 +72,7 @@ router.get('/:hash', async (req, res) => {
     res.send(url);
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ message: 'Something went wrong...' });
   }
 });
 

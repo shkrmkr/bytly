@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import urls from './routes/urls';
@@ -8,6 +9,12 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
+app.use(
+  cors({
+    credentials: true,
+    origin: 'http://localhost:8080',
+  })
+);
 app.use(express.json());
 app.use('/urls', urls);
 app.use('/:hash', async (req, res) => {
