@@ -1,1 +1,1 @@
-# Bytly: URL shortener
+# Server for bytly (URL Shortener)
