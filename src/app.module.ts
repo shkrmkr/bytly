@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
-import { PrismaService } from './prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { UrlModule } from './url/url.module';
 import { UserModule } from './user/user.module';
 
@@ -10,8 +11,16 @@ import { UserModule } from './user/user.module';
     UserModule,
     UrlModule,
     AuthModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: Joi.object({
+        DATABASE_URL: Joi.string().required(),
+        PORT: Joi.number().required(),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRES_IN: Joi.number().required(),
+      }),
+    }),
+    PrismaModule,
   ],
-  providers: [PrismaService],
 })
 export class AppModule {}
