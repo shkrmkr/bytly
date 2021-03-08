@@ -10,7 +10,7 @@ generator client {
 model Url {
   id          Int        @id @default(autoincrement())
   hash        String     @unique
-  originalUrl String     @map("original_url")
+  originalUrl String     @unique @map("original_url")
   hits        Int        @default(1)
   categories  Category[]
 

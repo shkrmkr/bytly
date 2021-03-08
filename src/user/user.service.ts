@@ -18,7 +18,7 @@ export class UserService {
     });
   }
 
-  async findUniqueOne(
+  async getUniqueUser(
     where: Prisma.UserWhereUniqueInput,
   ): Promise<User | undefined> {
     return this.prisma.user.findUnique({ where });

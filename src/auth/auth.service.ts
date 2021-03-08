@@ -3,18 +3,19 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { CreateUserDto } from '../user/dto/createUser.dto';
 import { UserService } from '../user/user.service';
-import { JwtPayload } from './interface/jwtPayload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   private hashPassword(password: string): Promise<string> {
@@ -29,22 +30,20 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.userService.findUniqueOne({ email });
+    const user = await this.userService.getUniqueUser({ email });
     const isPasswordValid = user
       ? await this.verifyPassword(user.password, password)
       : false;
 
     if (!user || !isPasswordValid) {
-      throw new BadRequestException(
-        '올바르지 않은 이메일 또는 비밀번호입니다.',
-      );
+      throw new BadRequestException('올바르지 않은 이메일 또는 비밀번호입니다');
     }
 
     return user;
   }
 
-  async register(data: CreateUserDto): Promise<User> {
-    const isEmailPresent = await this.userService.findUniqueOne({
+  async register(data: CreateUserDto): Promise<boolean> {
+    const isEmailPresent = await this.userService.getUniqueUser({
       email: data.email,
     });
 
@@ -53,10 +52,27 @@ export class AuthService {
     }
 
     const hashedPassword = await this.hashPassword(data.password);
-    return this.userService.create({ ...data, password: hashedPassword });
+    await this.userService.create({ ...data, password: hashedPassword });
+    return true;
   }
 
-  getToken(payload: JwtPayload): string {
-    return this.jwtService.sign(payload);
+  getAccessToken(user: User): string {
+    return this.jwtService.sign(
+      { userId: user.id },
+      {
+        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN'),
+        secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
+      },
+    );
+  }
+
+  getRefreshToken(user: User): string {
+    return this.jwtService.sign(
+      { userId: user.id },
+      {
+        expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN'),
+        secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
+      },
+    );
   }
 }
