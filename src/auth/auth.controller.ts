@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Param,
   Post,
   Req,
   UseGuards,
@@ -11,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { CreateUserDto } from '../user/dto/createUser.dto';
 import { AuthService } from './auth.service';
-import { LoginResponse } from './interface/loginResponse';
+import { AccessTokenResponse } from './interface/accessTokenResponse';
 import { RequestWithUser } from './interface/requestWithUser.interface';
 import { JwtAccessTokenGuard } from './jwtAccessToken.guard';
 import { JwtRefreshTokenGuard } from './jwtRefreshToken.guard';
@@ -27,7 +28,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(200)
-  login(@Req() req: RequestWithUser): LoginResponse {
+  login(@Req() req: RequestWithUser): AccessTokenResponse {
     const accessToken = this.authService.getAccessToken(req.user);
     const refreshToken = this.authService.getRefreshToken(req.user);
 
@@ -61,7 +62,16 @@ export class AuthController {
 
   @UseGuards(JwtRefreshTokenGuard)
   @Post('refresh-token')
-  refreshToken(@Req() req: Request) {
-    console.log(req.headers);
+  refreshToken(@Req() req: RequestWithUser): AccessTokenResponse {
+    const accessToken = this.authService.getAccessToken(req.user);
+    const refreshToken = this.authService.getRefreshToken(req.user);
+
+    req.res.cookie('jid', refreshToken, { httpOnly: true });
+    return { accessToken };
+  }
+
+  @Get('revoke/:id')
+  revokeRefreshTokenForUser(@Param('id') id: number) {
+    return this.authService.revokeRefreshToken(id);
   }
 }

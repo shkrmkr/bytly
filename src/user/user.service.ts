@@ -23,4 +23,17 @@ export class UserService {
   ): Promise<User | undefined> {
     return this.prisma.user.findUnique({ where });
   }
+
+  async revokeRefreshToken(id: Prisma.UserWhereUniqueInput['id']) {
+    try {
+      await this.prisma.user.update({
+        where: { id },
+        data: { tokenVersion: { increment: 1 } },
+      });
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  }
 }

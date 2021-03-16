@@ -9,4 +9,7 @@ export class UserModel implements User {
 
   @Exclude()
   password: string;
+
+  @Exclude()
+  tokenVersion: number;
 }

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { CreateUserDto } from '../user/dto/createUser.dto';
 import { UserService } from '../user/user.service';
@@ -60,7 +60,8 @@ export class AuthService {
     return this.jwtService.sign(
       { userId: user.id },
       {
-        expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN'),
+        // expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN'),
+        expiresIn: '10s',
         secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       },
     );
@@ -68,11 +69,17 @@ export class AuthService {
 
   getRefreshToken(user: User): string {
     return this.jwtService.sign(
-      { userId: user.id },
+      { userId: user.id, tokenVersion: user.tokenVersion },
       {
         expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN'),
         secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
       },
     );
+  }
+
+  async revokeRefreshToken(
+    id: Prisma.UserWhereUniqueInput['id'],
+  ): Promise<boolean> {
+    return await this.userService.revokeRefreshToken(id);
   }
 }
