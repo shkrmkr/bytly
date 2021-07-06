@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Url } from '@prisma/client';
 import { nanoid } from 'nanoid';
+import QRCode from 'qrcode';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUrlDto } from './dto/createUrl.dto';
 
@@ -43,10 +44,13 @@ export class UrlService {
       });
     }
 
+    const qrCodeDataUrl = await QRCode.toDataURL(data.originalUrl);
+
     return this.prisma.url.create({
       data: {
         originalUrl: formattedOriginalUrl,
         hash: nanoid(10),
+        qrCodeDataUrl,
       },
     });
   }

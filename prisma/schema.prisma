@@ -8,11 +8,12 @@ generator client {
 }
 
 model Url {
-  id          Int        @id @default(autoincrement())
-  hash        String     @unique
-  originalUrl String     @unique @map("original_url")
-  hits        Int        @default(1)
-  categories  Category[]
+  id            Int        @id @default(autoincrement())
+  hash          String     @unique
+  originalUrl   String     @unique @map("original_url")
+  hits          Int        @default(1)
+  qrCodeDataUrl String
+  categories    Category[]
 
   @@map("urls")
 }
